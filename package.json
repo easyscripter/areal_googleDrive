@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@coreui/coreui": "^3.4.0",
-        "@coreui/vue": "^3.2.9"
+        "@coreui/vue": "^3.2.9",
+        "vue-router": "^3.5.1"
     }
 }
