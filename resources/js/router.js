@@ -3,12 +3,12 @@ import Vue from 'vue'
 
 Vue.use(VueRouter);
 
-import MainPage from './Views/MainPage.vue'
+import MyDrivePage from './Views/MyDrivePage.vue'
 
 const routes = [
     {
-        path: '/home',
-        component: MainPage
+        path: '/dashboard/my-drive',
+        component: MyDrivePage
     }
 ]
 
