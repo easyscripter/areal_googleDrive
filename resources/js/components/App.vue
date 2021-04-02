@@ -3,10 +3,13 @@
     <CSidebar colorScheme="Dark">
       <CSidebarNav>
         <CSidebarNavTitle>Areal Google Drive</CSidebarNavTitle>
-        <CSidebarNavItem active to="/home" icon="cil-home" name="Главная"></CSidebarNavItem>
+        <CSidebarNavDropdown icon="cil-storage" name="Диски">
+            <CSidebarNavItem to="/dashboard/my-drive" name="Мой диск"></CSidebarNavItem>
+            <CSidebarNavItem name="Общие диски"></CSidebarNavItem>
+        </CSidebarNavDropdown>
         <CSidebarNavItem icon="cil-code" name="Логи"></CSidebarNavItem>
         <CSidebarNavItem icon="cil-settings" name="Настройки"></CSidebarNavItem>
-        <CSidebarNavItem
+        <CSidebarNavItem href="/login/google"
           icon="cib-google"
           name="Войти в Google"
         ></CSidebarNavItem>
@@ -19,13 +22,14 @@
 </template>
 
 <script>
-import { CWrapper, CSidebar, CSidebarNavItem, CSidebarNav  } from "@coreui/vue";
+import { CWrapper, CSidebar, CSidebarNavItem, CSidebarNav, CSidebarNavDropdown  } from "@coreui/vue";
 export default {
   components: {
     CSidebar,
     CSidebarNavItem, 
     CSidebarNav,
-    CWrapper
+    CWrapper,
+    CSidebarNavDropdown
   },
 };
 </script>
