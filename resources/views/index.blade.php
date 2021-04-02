@@ -10,6 +10,11 @@
 <body>
     <div id="app">
         <App></App>
+        @if (session('user.token'))
+            <div style="position: absolute; right: 0">
+                {{ session('user.token.access_token') }}
+            </div>
+        @endif
     </div>
     <script src="./js/app.js"></script>
 </body>
