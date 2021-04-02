@@ -3,38 +3,34 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+
+use App\Google;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
 
-    use AuthenticatesUsers;
+    public function login(Google $google, Request $request) {
+        $client = $google->client();
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = RouteServiceProvider::HOME;
+        if ($request->has('code')) {
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
-    }
+            $client->authenticate($request->input('code'));
+            $token = $client->getAccessToken();
+
+            session([
+                'user' => [
+                    'token' => $token
+                ]
+            ]);
+
+            $request->session()->save();
+            return redirect('/')->with(session('user.token'));
+            
+        } else {
+            $auth_url = $client->createAuthUrl();
+            return redirect($auth_url);
+        }
+   }
+
 }
