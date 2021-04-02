@@ -10,7 +10,7 @@ window.Vue = require('vue').default;
 
 import Vue from 'vue';
 import CoreuiVue from '@coreui/vue'
-import { cilCode, cilHome, cibGoogle, cilSettings} from '@coreui/icons'
+import { cilCode, cilHome, cibGoogle, cilSettings, cilStorage} from '@coreui/icons'
 import router from './router'
 Vue.use(CoreuiVue);
 /**
@@ -33,6 +33,6 @@ Vue.component('App', require('./components/App.vue').default)
 
 const app = new Vue({
     el: '#app',
-    icons: {cilCode, cilHome, cibGoogle, cilSettings},
+    icons: {cilCode, cilHome, cibGoogle, cilSettings, cilStorage},
     router
 });
