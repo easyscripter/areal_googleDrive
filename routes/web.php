@@ -13,10 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/{any}', function () {
+// Route::get('/{any}', function () {
+//     return view('index');
+// })->where(name: 'any', expression: '.*');
+
+Route::get('/', function () {
+    return view('index');
+});
+
+Route::get('/dashboard/{any}', function() {
     return view('index');
 })->where(name: 'any', expression: '.*');
 
-// Auth::routes();
-
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/login/google', 'App\Http\Controllers\Auth\LoginController@login');
