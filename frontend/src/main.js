@@ -2,14 +2,17 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import CoreuiVue from '@coreui/vue';
-Vue.use(CoreuiVue);
-import { CWrapper, CSidebar, CSidebarNavItem,CSidebarNavTitle, CSidebarNav, CSidebarNavDropdown, CCard, CCardBody, CDataTable  } from "@coreui/vue";
+
+import { CWrapper, CSidebar, CSidebarNavItem,CSidebarNavTitle, CSidebarNav, CSidebarNavDropdown, CCard, CCardBody, CDataTable, CBreadcrumbRouter } from "@coreui/vue";
 import { cilCode, cilHome, cibGoogle, cilSettings, cilStorage} from '@coreui/icons'
 import dotenv from 'dotenv'
 import VueSession from 'vue-session'
 
 
+
 Vue.config.productionTip = false
+
+Vue.use(CoreuiVue);
 
 Vue.component('CWrapper', CWrapper)
 Vue.component('CCard', CCard)
@@ -21,6 +24,7 @@ Vue.component('CSidebarNavDropdown', CSidebarNavDropdown)
 
 Vue.component('CCardBody', CCardBody)
 Vue.component('CDataTable', CDataTable)
+Vue.component('CBreadcrumbRouter', CBreadcrumbRouter)
 
 dotenv.config()
 

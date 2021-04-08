@@ -1,16 +1,25 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import MyDrivePage from '../views/MyDrivePage.vue'
+import FileExplorer from '../views/FileExplorer.vue'
+
 
 
 Vue.use(VueRouter)
 
 const routes = [
-  {
-    path: '/my-drive',
-    name: 'MyDisks',
-    component: MyDrivePage
-  },
+    {
+      path: '/my-drive',
+      component: MyDrivePage,
+      children: [
+        {
+          path:'folder/:folderId',
+          name: 'folder',
+          component: FileExplorer,
+          props: true
+        }
+      ]
+    }
 ]
 
 const router = new VueRouter({

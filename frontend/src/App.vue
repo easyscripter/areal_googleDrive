@@ -4,7 +4,7 @@
       <CSidebarNav>
         <CSidebarNavTitle><a class="nav-title" href="/">Areal Google Drive</a></CSidebarNavTitle>
         <CSidebarNavDropdown icon="cil-storage" name="Диски">
-            <CSidebarNavItem to="/my-drive" name="Мой диск"></CSidebarNavItem>
+            <CSidebarNavItem to="/my-drive/folder/root" name="Мой диск"></CSidebarNavItem>
             <CSidebarNavItem name="Общие диски"></CSidebarNavItem>
         </CSidebarNavDropdown>
         <CSidebarNavItem icon="cil-code" name="Логи"></CSidebarNavItem>
@@ -16,19 +16,15 @@
       </CSidebarNav>
     </CSidebar>
     <CWrapper>
-      <router-view></router-view>
+      
+      <router-view :key="$route.fullPath"></router-view>
     </CWrapper>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
 export default {
-  components: {
-  },
-  mounted() {
-    axios.get('')
-  },
+  
 };
 </script>
 <style lang="scss">
