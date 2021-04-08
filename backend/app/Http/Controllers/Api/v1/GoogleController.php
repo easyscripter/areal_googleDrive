@@ -29,7 +29,7 @@ class GoogleController extends Controller
         
         $optParams = [
             'q'=> " '".$parent_id."'  in parents",
-            'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size)'
+            'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)'
         ];
         $result_query = $this->drive->files->listFiles($optParams);
         
@@ -43,9 +43,11 @@ class GoogleController extends Controller
                 'name' => $file['name'],
                 'icon' => $file['iconLink'],
                 'modifiedTime'=> $file['modifiedTime'],
-                'parentId'=> $file['parents'],
+                'parentIds'=> $file['parents'],
                 'type' => $file['mimeType'],
-                'size' => $file['size']
+                'size' => $file['size'],
+                'webviewLink' => $file['webViewLink'],
+                'webContentLink' => $file['webContentLink']
             ];
         }
         $response = [
@@ -55,19 +57,6 @@ class GoogleController extends Controller
 
         return response()->json($response, 200);
     }
-    //0AMyvxxX7olLcUk9PVA
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -76,7 +65,7 @@ class GoogleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
     }
 
     /**
