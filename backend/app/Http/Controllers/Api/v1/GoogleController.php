@@ -42,7 +42,7 @@ class GoogleController extends Controller
                 'id'=> $file['id'],
                 'name' => $file['name'],
                 'icon' => $file['iconLink'],
-                'modifiedTime'=> $file['modifiedTime'],
+                'modifiedTime'=> date('Y-m-d H:i:s', strtotime($file['modifiedTime'])),
                 'parentIds'=> $file['parents'],
                 'type' => $file['mimeType'],
                 'size' => $file['size'],
