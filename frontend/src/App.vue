@@ -5,7 +5,7 @@
         <CSidebarNavTitle><a class="nav-title" href="/">Areal Google Drive</a></CSidebarNavTitle>
         <CSidebarNavDropdown icon="cil-storage" name="Диски">
             <CSidebarNavItem to="/my-drive/folder/root" name="Мой диск"></CSidebarNavItem>
-            <CSidebarNavItem name="Общие диски"></CSidebarNavItem>
+            <CSidebarNavItem to="/common-drives" name="Общие диски"></CSidebarNavItem>
         </CSidebarNavDropdown>
         <CSidebarNavItem icon="cil-code" name="Логи"></CSidebarNavItem>
         <CSidebarNavItem icon="cil-settings" name="Настройки"></CSidebarNavItem>
