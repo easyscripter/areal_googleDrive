@@ -1,27 +1,29 @@
 <template>
-  <div id="folder-page">
-    <CWrapper class="folder-section">
+  <div>
+    <CWrapper class="folder-explorer__section">
       <CCard bodyWrapper>
         <CCardBody>
           <CDataTable :items="files" :fields="fields">
             <template #Name="{ item }">
               <td>
                 <img :src="item.icon" alt="Иконка" />
-                <div class="file-name"></div>
-                <a class="file-name__link"
-                  v-if="
-                    item.type.includes('application/vnd.google-apps') != true
+                <div class="file-name">
+                  <a class="file-name__link"
+                     v-if="
+                    item.type.includes('application/vnd.google-apps') !== true
                   "
-                  :href="item.webContentLink"
-                  download
+                     :href="item.webContentLink"
+                     download
                   >{{ item.name }}</a
-                >
-                <a target="_blank" class="file-name__link"
-                  v-else-if="item.type !== 'application/vnd.google-apps.folder'"
-                  :href="item.webviewLink"
+                  >
+                  <a target="_blank" class="file-name__link"
+                     v-else-if="item.type !== 'application/vnd.google-apps.folder'"
+                     :href="item.webviewLink"
                   >{{ item.name }}</a
-                >
-                <p class="file-name__folder" @click="goIntoFolder(item.id)" v-else>{{ item.name }}</p>
+                  >
+                  <p class="file-name__folder" @click="goIntoFolder(item.id)" v-else>{{ item.name }}</p>
+                </div>
+
               </td>
             </template>
             <template #ModifiedTime="{ item }">
@@ -66,7 +68,7 @@ export default {
   mounted() {
     axios
       .get(
-        `https://areal-gdrive.com/api/v1/files/${this.$route.params.folderId}`
+        `https://areal-gdrive.com/api/v1/files/${this.folderId}`
       )
       .then((response) => {
         this.files = response.data.data;

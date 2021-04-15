@@ -3,11 +3,11 @@ import App from './App.vue'
 import router from './router'
 import CoreuiVue from '@coreui/vue';
 
-import { CWrapper, CSidebar, CSidebarNavItem,CSidebarNavTitle, CSidebarNav, CSidebarNavDropdown, CCard, CCardBody, CDataTable, CBreadcrumbRouter, CIcon } from "@coreui/vue";
-import { cilCode, cilHome, cibGoogle, cilSettings, cilStorage, cilArrowLeft} from '@coreui/icons'
+import { CWrapper, CSidebar, CSidebarNavItem,CSidebarNavTitle, CSidebarNav, CSidebarNavDropdown, CCard, CCardBody, CDataTable, CBreadcrumbRouter, CIcon, CSidebarNavLInk } from "@coreui/vue";
+import { cilCode, cilHome, cibGoogle, cilSettings, cilStorage, cilArrowLeft, cilSmile} from '@coreui/icons'
 import dotenv from 'dotenv'
-import VueSession from 'vue-session'
-
+const HelloJs = require('hellojs/dist/hello.all.min.js');
+const VueHello = require('vue-hellojs');
 
 
 Vue.config.productionTip = false
@@ -21,6 +21,7 @@ Vue.component('CSidebarNavItem', CSidebarNavItem)
 Vue.component('CSidebarNavTitle', CSidebarNavTitle)
 Vue.component('CSidebarNav', CSidebarNav)
 Vue.component('CSidebarNavDropdown', CSidebarNavDropdown)
+Vue.component('CSidebarNavLInk', CSidebarNavLInk)
 Vue.component('CIcon', CIcon)
 Vue.component('CCardBody', CCardBody)
 Vue.component('CDataTable', CDataTable)
@@ -28,10 +29,15 @@ Vue.component('CBreadcrumbRouter', CBreadcrumbRouter)
 
 dotenv.config()
 
-Vue.use(VueSession)
+HelloJs.init({
+  google: '744887238689-i3p531fodl1jjeknp61h738pq9juqbpk.apps.googleusercontent.com'
+}, {
+  redirect_uri: '/login/google/callback'
+});
+Vue.use(VueHello, HelloJs);
 
 new Vue({
   router,
-  icons: {cilCode, cilHome, cibGoogle, cilSettings, cilStorage, cilArrowLeft},
+  icons: {cilCode, cilHome, cibGoogle, cilSettings, cilStorage, cilArrowLeft, cilSmile},
   render: h => h(App)
 }).$mount('#app')

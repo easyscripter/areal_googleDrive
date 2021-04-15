@@ -23,14 +23,12 @@ const routes = [
     {
       path: '/common-drives',
       component: CommonDrivesPage,
-      // children: [
-      //   {
-      //     path:'folder/:folderId',
-      //     name: 'folder',
-      //     component: FileExplorer,
-      //     props: true
-      //   }
-      // ]
+    },
+    {
+      path: '/common-drives/folder/:folderId',
+      component: FileExplorer,
+      name: 'commonFolder',
+      props:true
     }
 ]
 

@@ -17,7 +17,7 @@ class GoogleController extends Controller
     public function __construct(Google $google, Request $request)
     {
         $this->client = $google->client();
-        $this->client->setAccessToken($request->session()->get('auth_token'));
+        $this->client->setAccessToken($request->session()->get('user.token'));
         $this->drive = $google->drive($this->client);
     }
 
@@ -25,14 +25,16 @@ class GoogleController extends Controller
 
 
     public function getFiles($parent_id)
-    {   
-        
+    {
+
         $optParams = [
             'q'=> " '".$parent_id."'  in parents",
-            'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)'
+            'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',
+            "includeItemsFromAllDrives"=> true,
+            "supportsAllDrives"=> true
         ];
         $result_query = $this->drive->files->listFiles($optParams);
-        
+
         $files = $result_query->getFiles();
 
         $files_array = [];
@@ -57,59 +59,25 @@ class GoogleController extends Controller
 
         return response()->json($response, 200);
     }
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        
-    }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+    public function getSharedDrives() {
+        $pageToken = NULL;
+        $result = array();
+        do {
+            try {
+                $parameters = array();
+                if ($pageToken) {
+                    $parameters['pageToken'] = $pageToken;
+                }
+                $drives = $this->drive->drives->listDrives($parameters);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+                $result = array_merge($result, $drives->getDrives());
+                $pageToken = $drives->getNextPageToken();
+            } catch (Exception $e) {
+                print "An error occurred: " . $e->getMessage();
+                $pageToken = NULL;
+            }
+        } while ($pageToken);
+        return response()->json($result, 200);
     }
 }

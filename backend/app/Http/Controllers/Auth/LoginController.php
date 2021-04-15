@@ -20,10 +20,36 @@ class LoginController extends Controller
 
     public function handleProviderGoogleCalllback(Request $request) {
         $auth_token = Socialite::with('google')->getAccessTokenResponse($request->code);
+        $user = Socialite::driver('google')->userFromToken($auth_token['access_token']);
 
-        session(['auth_token'=> $auth_token]);
+        session([
+            "user"=>[
+                "token"=>$auth_token,
+                "info"=>$user
+            ]
+        ]);
 
-        return redirect(env('FRONTEND_URL'))->with(session('auth_token'));
+        return redirect(env('FRONTEND_URL'))->with(session('user'));
+    }
+
+    public function getUser(Request $request) {
+        $user_info = $request->session()->get('user.info');
+
+        if (!$user_info) {
+            return response()->json(['success'=> false], 400);
+        }
+
+        $response = [
+            "name" => $user_info->name,
+            "email" => $user_info->email,
+            "avatar" => $user_info->avatar
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function logout(Request $request) {
+        $request->session()->pull('user.info', 'default');
+        return redirect()->back();
     }
 
 }

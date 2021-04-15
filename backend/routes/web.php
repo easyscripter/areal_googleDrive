@@ -13,10 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::get('/{any}', function () {
-//     return view('index');
-// })->where(name: 'any', expression: '.*');
-
 Route::get('/login/google', 'App\Http\Controllers\Auth\LoginController@login');
 
 Route::get('/login/google/callback', 'App\Http\Controllers\Auth\LoginController@handleProviderGoogleCalllback');
@@ -24,3 +20,4 @@ Route::get('/login/google/callback', 'App\Http\Controllers\Auth\LoginController@
 Route::get('/', 'App\Http\Controllers\SpaController@index')->where('any', '.*');
 Route::get('/{any}', 'App\Http\Controllers\SpaController@index')->where('any', '.*');
 Route::get('/{any}/{any1}', 'App\Http\Controllers\SpaController@index')->where('any', '.*');
+Route::get('/user/logout', 'App\Http\Controllers\Auth\LoginController@logout');
