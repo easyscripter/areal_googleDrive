@@ -48,7 +48,7 @@ class LoginController extends Controller
     }
 
     public function logout(Request $request) {
-        $request->session()->pull('user.info', 'default');
+        $request->session()->pull('user', 'default');
         return redirect()->back();
     }
 

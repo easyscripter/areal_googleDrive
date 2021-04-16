@@ -24,9 +24,8 @@ class GoogleController extends Controller
 
 
 
-    public function getFiles($parent_id)
+    public function getFiles(Request $request, $parent_id)
     {
-
         $optParams = [
             'q'=> " '".$parent_id."'  in parents",
             'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',

@@ -12,7 +12,7 @@
         <CSidebarNavItem href="/login/google"
           icon="cib-google"
           name="Войти в Google"
-          v-if="Object.keys(user_data).length === 0"
+          v-if="!user_data.hasOwnProperty('name')"
         ></CSidebarNavItem  >
         <CSidebarNavDropdown v-else icon="cil-smile" name="Аккаунт">
           <CSidebarNavItem>
@@ -40,7 +40,6 @@ export default {
     };
   },
   mounted() {
-    this.user_data = {};
     axios
       .get("https://areal-gdrive.com/api/v1/user")
       .then(
