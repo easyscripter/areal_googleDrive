@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import MyDrivePage from '../views/MyDrivePage.vue'
 import FileExplorer from '../views/FileExplorer.vue'
 import CommonDrivesPage from '../views/CommonDrivesPage.vue'
+import ExportPage from "../views/ExportPage";
 
 
 Vue.use(VueRouter)
@@ -29,6 +30,11 @@ const routes = [
       component: FileExplorer,
       name: 'commonFolder',
       props:true
+    },
+    {
+        path: '/export',
+        component: ExportPage,
+        name: 'ExportPage',
     }
 ]
 
