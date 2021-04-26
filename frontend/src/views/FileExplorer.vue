@@ -47,7 +47,6 @@
 </template>
 
 <script>
-import axios from "axios";
 export default {
   props: {
     folderId: {
@@ -66,7 +65,7 @@ export default {
     };
   },
   mounted() {
-    axios
+    this.$http
       .get(
         `https://areal-gdrive.com/api/v1/files/${this.folderId}`
       )

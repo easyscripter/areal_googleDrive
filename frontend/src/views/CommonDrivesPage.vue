@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import axios from "axios";
 export default {
   data() {
     return {
@@ -34,7 +33,7 @@ export default {
     };
   },
   mounted() {
-    axios
+    this.$http
       .get(`https://areal-gdrive.com/api/v1/sharedDrives`)
       .then((response) => {
           this.disks = response.data;
