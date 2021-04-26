@@ -21,13 +21,9 @@ class GoogleController extends Controller
         $this->drive = $google->drive($this->client);
     }
 
-
-
-
-    public function getFiles(Request $request, $parent_id)
-    {
+    public  function  getFilesFromDrive($parent_id) {
         $optParams = [
-            'q'=> " '".$parent_id."'  in parents",
+            'q'=> " '".$parent_id."'  in parents and trashed = false",
             'fields'=> 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',
             "includeItemsFromAllDrives"=> true,
             "supportsAllDrives"=> true
@@ -51,9 +47,16 @@ class GoogleController extends Controller
                 'webContentLink' => $file['webContentLink']
             ];
         }
+
+        return $files_array;
+    }
+
+
+    public function files(Request $request, $parent_id)
+    {
         $response = [
             'success'=> true,
-            'data'=> $files_array
+            'data'=> $this->getFilesFromDrive($parent_id)
         ];
 
         return response()->json($response, 200);
@@ -79,4 +82,24 @@ class GoogleController extends Controller
         } while ($pageToken);
         return response()->json($result, 200);
     }
+
+    public function  exportToGoogleDrive($folderName) {
+
+    }
+
+    public  function  createExportFolder ($folderName, $directoryId) {
+        $files = $this->getFilesFromDrive($directoryId);
+        $export_folder = null;
+        foreach ($files as $file) {
+            if($file['name'] != $folderName && $file['type'] != 'application/vnd.google-apps.folder') {
+                $file = new \Google_Service_Drive_DriveFile();
+                $file->setName($folderName);
+                $file->setMimeType('application/vnd.google-apps.folder');
+                $export_folder = $this->drive->files->create($file);
+                break;
+            }
+        }
+        return $export_folder;
+    }
+
 }
