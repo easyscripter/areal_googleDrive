@@ -16,6 +16,7 @@ use App\Http\Controllers\Auth\LoginController;
 |
 */
 
-Route::get('/v1/files/{parent_id}', [GoogleController::class, 'getFiles']);
-Route::get('/v1/user', [LoginController::class, 'getUser']);
+Route::get('/v1/files/{parent_id}', [GoogleController::class, 'files']);
 Route::get('/v1/sharedDrives', [GoogleController::class, 'getSharedDrives']);
+Route::get('/v1/export/{folderName}', [GoogleController::class, 'exportToGoogleDrive']);
+Route::get('/v1/google-login', [LoginController::class, 'loginUser']);
