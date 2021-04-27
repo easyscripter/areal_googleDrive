@@ -17,7 +17,8 @@ class GoogleController extends Controller
     public function __construct(Google $google, Request $request)
     {
         $this->client = $google->client();
-        $this->client->setAccessToken($request->session()->get('user.token'));
+        $token = $request->session()->get('access_token');
+        $this->client->setAccessToken(json_encode($token));
         $this->drive = $google->drive($this->client);
     }
 

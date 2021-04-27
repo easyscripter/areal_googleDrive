@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/user/logout', 'App\Http\Controllers\Auth\LoginController@logout');
-
+//Route::get('/login/google/callback', 'App\Http\Controllers\Auth\LoginController@HandleRedirect');
 Route::get('/', 'App\Http\Controllers\SpaController@index')->where('any', '.*');
 Route::get('/{any}', 'App\Http\Controllers\SpaController@index')->where('any', '.*');
 Route::get('/{any}/{any1}', 'App\Http\Controllers\SpaController@index')->where('any', '.*');

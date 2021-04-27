@@ -29,7 +29,7 @@
           name="Войти в Google"
           v-if="!user_data.hasOwnProperty('name')"
         ></CSidebarNavItem>-->
-        <CButton color="primary" @click="auth('google')">Войти в Google</CButton>
+        <CButton color="primary" @click="auth()">Войти в Google</CButton>
     <!--<CSidebarNavDropdown v-else icon="cil-user" name="Аккаунт">
          <CSidebarNavItem>
             <a class="c-sidebar-nav-link">
@@ -65,27 +65,13 @@ export default {
     );
   },
   methods: {
-    auth(network) {
-      const hello = this.hello;
-      hello(network)
-        .login()
-        .then(
-          () => {
-            const authRes = hello(network).getAuthResponse();
-            this.$http
-              .get("api/v1/google-login", {
-                params: {
-                  access_token: authRes.access_token,
-                  provider: network,
-                },
-              })
-              .then((response) => console.log(response.data))
-              .catch((error) => console.log(error));
-          },
-          (e) => {
-            console.log(e);
-          }
-        );
+    async auth() {
+      const authCode = await this.$gAuth.getAuthCode();
+      const response = await this.$http.post('https://areal-gdrive.com/api/v1/google-login', {
+          code: authCode,
+          redirect_uri: 'postmessage'
+      });
+      console.log(response);
     },
   },
 };

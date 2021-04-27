@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use http\Client;
 use Illuminate\Http\Request;
 use Illuminate\Session;
 
@@ -12,25 +13,15 @@ use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
 {
+    private $client;
 
-    public function loginUser(Request $request) {
-       $user = Socialite::with($request->provider)->stateless()->userFromToken($request->access_token);
-       return response()->json($user, 200);
+    public function RedirectToProvider(Request $request)
+    {
+        $access_token = Socialite::driver('google')->getAccessTokenResponse($request->post('code'));
+        $request->session()->put('access_token', $access_token);
+        $user = Socialite::driver('google')->userFromToken($access_token['access_token']);
+        return response()->json($user, 200);
     }
-
-    // public function handleProviderGoogleCalllback(Request $request) {
-    //     $auth_token = Socialite::with('google')->getAccessTokenResponse($request->code);
-    //     $user = Socialite::driver('google')->userFromToken($auth_token['access_token']);
-
-    //     session([
-    //         "user"=>[
-    //             "token"=>$auth_token,
-    //             "info"=>$user
-    //         ]
-    //     ]);
-
-    //     return redirect(env('FRONTEND_URL'))->with(session('user'));
-    // }
 
     // public function getUser(Request $request) {
     //     $user_info = $request->session()->get('user.info');
