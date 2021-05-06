@@ -15,7 +15,7 @@ class LoginController extends Controller
 {
     private $client;
 
-    public function RedirectToProvider(Request $request)
+    public function LoginUser(Request $request)
     {
         $access_token = Socialite::driver('google')->getAccessTokenResponse($request->post('code'));
         $request->session()->put('access_token', $access_token);
