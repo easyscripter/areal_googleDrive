@@ -71,7 +71,6 @@ export default {
           code: authCode,
           redirect_uri: 'postmessage'
       });
-      console.log(response);
     },
   },
 };
