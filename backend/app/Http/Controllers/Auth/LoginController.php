@@ -17,6 +17,7 @@ class LoginController extends Controller
 
     public function LoginUser(Request $request)
     {
+        $parameters = ['access_type' => 'offline'];
         $access_token = Socialite::driver('google')->getAccessTokenResponse($request->post('code'));
         $request->session()->put('access_token', $access_token);
         $user = Socialite::driver('google')->userFromToken($access_token['access_token']);
