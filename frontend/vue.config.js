@@ -1,8 +1,11 @@
 module.exports = {
+    css: {
+        extract: false
+    },
     transpileDependencies: [], 
       // proxy API requests to Valet during development
     devServer: {
-          proxy: 'https://areal-gdrive.com/',//с пушером траблы вызывает;
+          //proxy: 'https://areal-gdrive.com/',//с пушером траблы вызывает;
           proxy: {
               '^/api': {
                 target: 'https://areal-gdrive.com/api/v1/', //проксировать все api-запросы к ларавелу
