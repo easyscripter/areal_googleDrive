@@ -9,12 +9,18 @@ use Carbon\Carbon;
 
 use Illuminate\Session;
 use PhpParser\Node\Stmt\TryCatch;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Request as GizzleRequest;
+
+// set_time_limit(0);
 
 class GoogleController extends Controller
 {
     private $client;
     private $drive;
-    private $docs;
+    private const FILE_TYPE_SPREADSHEET = 'application/vnd.google-apps.spreadsheet';
+    private const FILE_TYPE_DOCUMENT = 'application/vnd.google-apps.document';
+    private const FILE_TYPE_PRESENTATION = 'application/vnd.google-apps.presentation';
 
     public function __construct(Google $google, Request $request)
     {
@@ -22,14 +28,13 @@ class GoogleController extends Controller
         $token = $request->session()->get('access_token');
         $this->client->setAccessToken(json_encode($token));
         $this->drive = $google->drive($this->client);
-        $this->docs = $google->docs($this->client);
     }
 
     public  function  getFilesFromParentFolder($parent_id)
     {
         $optParams = [
             'q' => " '" . $parent_id . "'  in parents and trashed = false",
-            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
             "includeItemsFromAllDrives" => true,
             "supportsAllDrives" => true
         ];
@@ -96,16 +101,18 @@ class GoogleController extends Controller
         do {
             try {
                 $parameters = array();
-                $parameters['fields'] = 'files(id, name, modifiedTime, iconLink, webViewLink, parents, shared, fileExtension, mimeType, size, webContentLink)';
+                $parameters['fields'] = 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)';
                 $parameters['q'] = "trashed = false";
-                $paramters['includeItemsFromAllDrives'] = true;
-                $parameters['supportsAllDrives']  = true;
                 if ($pageToken) {
                     $parameters['pageToken'] = $pageToken;
                 }
                 $files = $this->drive->files->listFiles($parameters);
-
                 $result = array_merge($result, $files->getFiles());
+                foreach ($result as $file) {
+                    if ($file['parents'] == null) {
+                        $file->setParents(array('0AMyvxxX7olLcUk9PVA'));
+                    }
+                }
                 $pageToken = $files->getNextPageToken();
             } catch (Exception $e) {
                 print "An error occurred: " . $e->getMessage();
@@ -119,20 +126,27 @@ class GoogleController extends Controller
     public function  exportToGoogleDrive($folderName)
     {
         $files = $this->getAllFilesFromDrive();
-        //$tree = $this->makeTree($files, '0AMyvxxX7olLcUk9PVA');
-
         foreach ($files as $file) {
+            $getExportFormat = $this->getExportMymeType($file);
+            $exportFolderIsExists = $this->checkExistsExportFolder($file['parents'][0], $folderName);
+            $export_folderId = $this->getExportFolderId($file['parents'][0], $folderName);
 
-            $googleDocIsExists = $this->checkExistsGoogleDoc($file);
-            if ($file['parents'] != null && $googleDocIsExists['isExists'] && ($this->checkExistsExportFolder($file['parents'][0], $folderName) == false)) {
-                $export_folder = $this->createExportFolder($file['parents'], $folderName);
-                $this->convertGoogleDoc($file, $googleDocIsExists['extension'], $export_folder['id'], $folderName);
-            } else if ($file['parents'] != null && $googleDocIsExists['isExists'] && ($this->checkExistsExportFolder($file['parents'][0], $folderName) == true)) {
-                $this->convertGoogleDoc($file, $googleDocIsExists['extension'], $this->getExportFolderId($file['parents'][0], $folderName));
+            if ($getExportFormat && !$exportFolderIsExists) {
+                $this->createExportFolder($file['parents'], $folderName);
             }
+
+            if (
+                $getExportFormat && $exportFolderIsExists &&
+                ($this->checkModifiedTimeOfOriginalFile($export_folderId, $file, $file['name']) == false || $this->checkExportFileInExportFolder($export_folderId, $file['name']) == false)
+            ) {
+                $this->convertGoogleDoc($file, $export_folderId);
+            }
+
+            // if ($getExportFormat && $exportFolderIsExists && $this->checkModifiedTimeOfOriginalFile($export_folderId, $file, $file['name']) == true) {
+            //     $this->updateDocInExportFolder($export_folderId, $file['name']);
+            // }
         }
     }
-
     /*public function makeTree(Array &$files, $parent_id = '') : array {
         $branch = [];
         foreach ($files as &$file) {
@@ -144,68 +158,76 @@ class GoogleController extends Controller
         }
         return $branch;
     }*/
-
-    public function checkExistsGoogleDoc($file)
+    public function getExportUrl($file)
     {
-        switch ($file['mimeType']) {
-            case "application/vnd.google-apps.document":
-                $arr = [
-                    "isExists" => true,
-                    "extension" => "document"
-                ];
-                return $arr;
+        $exportURL = '';
+        switch ($file->getMimeType()) {
+            case self::FILE_TYPE_SPREADSHEET:
+                $exportURL = "https://docs.google.com/spreadsheets/d/".$file['id']."/export?format=xlsx";
                 break;
-            case "application/vnd.google-apps.spreadsheet":
-                $arr = [
-                    "isExists" => true,
-                    "extension" => "spreadsheets"
-                ];
-                return $arr;
+
+            case self::FILE_TYPE_DOCUMENT:
+                $exportURL = "https://docs.google.com/document/d/".$file['id']."/export?format=docx";
                 break;
-            case "application/vnd.google-apps.presentation":
-                $arr = [
-                    "isExists" => true,
-                    "extension" => "presentation"
-                ];
-                return $arr;
+
+            case self::FILE_TYPE_PRESENTATION:
+                $exportURL = "https://docs.google.com/presentation/d/".$file['id']."/export/pptx";
                 break;
             default:
-                $arr = [
-                    "isExists" => false,
-                    "extension" => ""
-                ];
-                return $arr;
+                $exportURL = '';
                 break;
         }
+        return $exportURL;
     }
-    public function convertGoogleDoc($file, $extension, $exportFolderId)
+
+    public function getExportMymeType($file)
+    {
+        $exportFormat = '';
+        switch ($file->getMimeType()) {
+            case self::FILE_TYPE_SPREADSHEET:
+                $exportFormat = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                break;
+
+            case self::FILE_TYPE_DOCUMENT:
+                $exportFormat = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                break;
+
+            case self::FILE_TYPE_PRESENTATION:
+                $exportFormat = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+                break;
+            default:
+                $exportFormat = '';
+                break;
+        }
+        return $exportFormat;
+    }
+
+    public function convertGoogleDoc($file, $exportFolderId)
     {
         try {
             $exporting_file = new \Google_Service_Drive_DriveFile();
             $exporting_file->setName($file['name']);
-            $format = '';
-            switch ($extension) {
-                case "document":
-                    $exporting_file->setMimeType('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-                    $format = 'docx';
-                    break;
-                case "spreadsheets":
-                    $exporting_file->setMimeType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                    $format = 'xlsx';
-                    break;
-                case "presentation":
-                    $exporting_file->setMimeType('application/vnd.openxmlformats-officedocument.presentationml.presentation');
-                    $format = 'ppt';
-                    break;
-            }
             $exporting_file->setParents([$exportFolderId]);
+            $exporting_file->setProperties(
+                ["modifiedTimeOfOriginalFile" => date('Y-m-d H:i:s', strtotime($file['modifiedTime']))]
+            );
+            $content = null;
+            $exporting_file->setMimeType($this->getExportMymeType($file));
+            if ($this->getExportUrl($file)) {
+                $httpClient = $this->client->authorize();
+                $request = new GizzleRequest('GET' , $this->getExportUrl($file));
+                $response = $httpClient->send($request);
 
-            $content = file_get_contents("https://docs.google.com/" . $extension . "/d/" . $file['id'] . "/export?format=" . $format);
+                if ($response->getStatusCode() == 200) {
+                    $content = file_get_contents($this->getExportUrl($file));
+                }
+            }
             $exported_file = $this->drive->files->create($exporting_file, array(
                 'data' => $content,
                 'uploadType' => 'multipart',
-                'fields' => 'id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink',
+                'fields' => 'id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink, properties',
             ));
+            return $exported_file;
         } catch (Exception $e) {
             print "An error occurred: " . $e->getMessage();
         }
@@ -224,20 +246,23 @@ class GoogleController extends Controller
     {
         $optParams = [
             'q' => "name = '" . $exportingFolderName . "' and  '" . $file_parent_id . "'  in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'",
-            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
             "includeItemsFromAllDrives" => true,
             "supportsAllDrives" => true
         ];
         $result_query = $this->drive->files->listFiles($optParams);
         $folder = $result_query->getFiles();
-        return $folder[0]['id'];
+
+        if (count($folder) > 0) {
+            return $folder[0]['id'];
+        }
     }
     public function checkExistsExportFolder($file_parent_id, $exportingFolderName)
     {
         $flagFolderExist = true;
         $optParams = [
             'q' => "name = '" . $exportingFolderName . "' and  '" . $file_parent_id . "'  in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'",
-            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, fileExtension, mimeType, size, webContentLink)',
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
             "includeItemsFromAllDrives" => true,
             "supportsAllDrives" => true
         ];
@@ -247,5 +272,123 @@ class GoogleController extends Controller
         }
 
         return $flagFolderExist;
+    }
+    public function checkExportFileInExportFolder($exportFolderId, $filename)
+    {
+        $FileIsExists = true;
+
+        $optParams = [
+            'q' => " '" . $exportFolderId . "'  in parents and name = '" . $filename . "' and trashed = false",
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
+            "includeItemsFromAllDrives" => true,
+            "supportsAllDrives" => true
+        ];
+
+        $result_query = $this->drive->files->listFiles($optParams);
+
+        if (!$result_query['files']) {
+            $FileIsExists = false;
+        }
+
+        return $FileIsExists;
+    }
+    public function checkModifiedTimeOfOriginalFile($exportFolderId, $file, $filename)
+    {
+        $DocIsModified = true;
+
+        $optParams = [
+            'q' => " '" . $exportFolderId . "'  in parents and name = '" . $filename . "' and trashed = false",
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
+            "includeItemsFromAllDrives" => true,
+            "supportsAllDrives" => true
+        ];
+
+        $result_query = $this->drive->files->listFiles($optParams);
+
+        foreach ($result_query as $exp_file) {
+            if ($exp_file['properties']["modifiedTimeOfOriginalFile"] == date('Y-m-d H:i:s', strtotime($file['modifiedTime']))) {
+                $DocIsModified = false;
+            }
+        }
+
+        return $DocIsModified;
+    }
+
+    public function updateDocInExportFolder($parentFolder_id, $filename)
+    {
+        $optParams = [
+            'q' => " '" . $parentFolder_id . "'  in parents and name = '" . $filename . "' and trashed = false",
+            'fields' => 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks)',
+        ];
+        $files = $this->drive->files->listFiles($optParams);
+
+
+
+        foreach ($files as $file) {
+
+
+            $response = $this->drive->files->get($file['id'], array(
+                'alt' => 'media'));
+            $content = $response->getBody()->getContents();
+            $newfile = new \Google_Service_Drive_DriveFile();
+            $newfile->setName($file['name']);
+            $newfile->setProperties(["modifiedTimeOfOriginalFile" => date('Y-m-d H:i:s', strtotime($file['modifiedTime']))]);
+            $updated_file = $this->drive->files->update($file['id'], $newfile, array(
+                "uploadType" => "multipart",
+                "data" => $content
+            ));
+        }
+    }
+
+    public function  getFilesWithPermissions ($email) {
+        $pageToken = NULL;
+        $result = array();
+        do {
+            try {
+                $parameters = array();
+                $parameters['fields'] = 'files(id, name, modifiedTime, iconLink, webViewLink, parents, properties, fileExtension, mimeType, size, webContentLink, exportLinks,  permissions)';
+                $parameters['q'] = " ('" . $email . "'  in writers or '" . $email . "' in readers)  and trashed = false";
+                $parameters['supportsAllDrives'] = true;
+                $parameters['includeItemsFromAllDrives'] = true;
+                if ($pageToken) {
+                    $parameters['pageToken'] = $pageToken;
+                }
+                $files = $this->drive->files->listFiles($parameters);
+                $result = array_merge($result, $files->getFiles());
+                $pageToken = $files->getNextPageToken();
+            } catch (Exception $e) {
+                print "An error occurred: " . $e->getMessage();
+                $pageToken = NULL;
+            }
+        } while ($pageToken);
+
+        $files_array = [];
+
+        foreach ($result as $key => $file) {
+            if ($file['permissions'] == null) {
+
+                $file->setPermissions("emailAddress" );
+
+            }
+
+            $files_array[$key] = [
+                'id' => $file['id'],
+                'name' => $file['name'],
+                'icon' => $file['iconLink'],
+                'permissions' => $file['permissions'],
+                'modifiedTime' => date('Y-m-d H:i:s', strtotime($file['modifiedTime'])),
+                'parentIds' => $file['parents'],
+                'type' => $file['mimeType'],
+                'size' => $file['size'],
+                'webviewLink' => $file['webViewLink'],
+                'webContentLink' => $file['webContentLink']
+            ];
+        }
+        $response = [
+            'success' => true,
+            'data' => $files_array
+        ];
+
+        return response()->json($response, 200);
     }
 }
