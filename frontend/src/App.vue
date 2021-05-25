@@ -22,6 +22,11 @@
           icon="cil-cloud-download"
           name="Экспорт"
         ></CSidebarNavItem>
+        <CSidebarNavItem
+            to="/search-files-with-permissions"
+            icon="cil-search"
+            name="Поиск файлов по правам"
+        ></CSidebarNavItem>
         <CSidebarNavItem icon="cil-code" name="Логи"></CSidebarNavItem>
    <!--     <CSidebarNavItem
           @click="auth('google')"
@@ -67,7 +72,7 @@ export default {
   methods: {
     async auth() {
       const authCode = await this.$gAuth.getAuthCode();
-      const response = await this.$http.post('https://areal-gdrive.com/api/v1/google-login', {
+      await this.$http.post('https://areal-gdrive.com/api/v1/google-login', {
           code: authCode,
           redirect_uri: 'postmessage'
       });
