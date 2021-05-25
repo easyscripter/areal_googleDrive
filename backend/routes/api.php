@@ -20,3 +20,4 @@ Route::get('/v1/files/{parent_id}', [GoogleController::class, 'files']);
 Route::get('/v1/sharedDrives', [GoogleController::class, 'getSharedDrives']);
 Route::get('/v1/export/{folderName}', [GoogleController::class, 'exportToGoogleDrive']);
 Route::post('/v1/google-login', [LoginController::class, 'LoginUser']);
+Route::get('/v1/files/permissions/email={email}', [GoogleController::class, 'getFilesWithPermissions']);
