@@ -4,6 +4,7 @@ import MyDrivePage from '../views/MyDrivePage.vue'
 import FileExplorer from '../views/FileExplorer.vue'
 import CommonDrivesPage from '../views/CommonDrivesPage.vue'
 import ExportPage from "../views/ExportPage";
+import PermissionsViewer from "../views/PermissionsViewer";
 
 
 Vue.use(VueRouter)
@@ -35,6 +36,11 @@ const routes = [
         path: '/export',
         component: ExportPage,
         name: 'ExportPage',
+    },
+    {
+        path: '/search-files-with-permissions',
+        component: PermissionsViewer,
+        name: 'SearchFiles',
     }
 ]
 
