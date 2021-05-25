@@ -33,7 +33,7 @@
             </template>
             <template #Size="{ item }">
               <td>
-                {{ (item.size / (1034*1024)).toFixed(2) || '-' }} MB
+                {{ (item.size / (1024*1024)).toFixed(2) || '-' }} MB
               </td>
             </template>
           </CDataTable>
